@@ -7,7 +7,9 @@ tempfile_test_() ->
    fun setup/0, fun teardown/1,
    [
     ?_test(t_name()),
-    ?_test(t_name_is_good_random())
+    ?_test(t_name_is_good_random()),
+    ?_test(t_randstr_has_good_length()),
+    ?_test(t_randstr_is_good_random())
    ]}.
 
 setup() ->
@@ -35,3 +37,13 @@ all_are_different([H|T]) ->
 t_name_is_good_random() ->
   ?assert(all_are_different(build_sample(100))).
 
+build_randstrs(0) ->
+  [];
+build_randstrs(N) ->
+  [tempfile:randstr(10)|build_randstrs(N-1)].
+
+t_randstr_has_good_length() ->
+  ?assertEqual(234,string:len(tempfile:randstr(234))).
+
+t_randstr_is_good_random() ->
+  ?assert(all_are_different(build_randstrs(100))).
