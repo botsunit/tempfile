@@ -13,7 +13,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([name/1, name/2]).
+-export([name/1, name/2, randstr/1]).
 
 -type tmpname_options() :: [tmpname_option()].
 -type tmpname_option() :: {ext, string()} | {path, string()}.
@@ -51,6 +51,26 @@ name(Prefix, Options) ->
   _ = temp_utils:ensure_started(),
   gen_server:call(?SERVER, {name, Prefix, Options}).
 
+% @doc
+% Get a random string of a given length,
+% that is suitable for a file name or (only letters and digits)
+%
+% Param:
+%
+% * Length, the length of the string to generate
+%
+% Examples:
+%
+% <pre lang="erlang">
+% 1> tempfile:randstr(12).
+% "ZL7YmS5HRQod"
+% </pre>
+% @end
+-spec randstr(Length::integer()) -> string().
+randstr(Length) ->
+  _ = temp_utils:ensure_started(),
+  gen_server:call(?SERVER, {randstr, Length}).
+
 % @hidden
 init(Args) ->
   _ = random:seed(erlang:system_time(micro_seconds)),
@@ -65,6 +85,8 @@ handle_call({name, Prefix, Options}, _From, State) ->
         end,
   Path = maps:get(path, Options1, ostemp:dir()),
   {reply, filename:join([Path, Prefix ++ temp_utils:randstr(20) ++ Ext]), State};
+handle_call({randstr, Length}, _From, State) ->
+  {reply, temp_utils:randstr(Length), State};
 handle_call(_Request, _From, State) ->
   {reply, ok, State}.
 
